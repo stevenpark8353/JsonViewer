@@ -85,7 +85,7 @@ public class JSONViewer extends JFrame {
 		//
 		// } catch (IOException | FontFormatException e) {
 		// }
-		setUIFont(new javax.swing.plaf.FontUIResource("�������", Font.PLAIN, 13));
+		setUIFont(new javax.swing.plaf.FontUIResource("나눔고딕", Font.PLAIN, 13));
 
 		Icon empty = new TreeIcon();
 		// UIManager.put("Tree.collapsedIcon", empty);
