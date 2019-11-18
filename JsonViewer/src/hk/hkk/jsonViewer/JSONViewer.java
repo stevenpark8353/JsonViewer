@@ -4,8 +4,17 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -22,6 +31,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -36,6 +46,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import net.miginfocom.swing.MigLayout;
+import javax.swing.JCheckBox;
 
 /**
  * 
@@ -74,7 +85,7 @@ public class JSONViewer extends JFrame {
 		//
 		// } catch (IOException | FontFormatException e) {
 		// }
-		setUIFont(new javax.swing.plaf.FontUIResource("³ª´®°íµñ", Font.PLAIN, 13));
+		setUIFont(new javax.swing.plaf.FontUIResource("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", Font.PLAIN, 13));
 
 		Icon empty = new TreeIcon();
 		// UIManager.put("Tree.collapsedIcon", empty);
@@ -111,6 +122,7 @@ public class JSONViewer extends JFrame {
 	private JButton btnExpandAll;
 	private JTextField tfKey;
 	private JTextField textField;
+	private JCheckBox chkAutoExpand;
 
 	public JSONViewer() {
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -130,9 +142,35 @@ public class JSONViewer extends JFrame {
 			}
 		});
 		panelTop.add(btnExpandAll, "cell 0 0,alignx left");
+		
+		chkAutoExpand = new JCheckBox("Auto Expand");
+		panelTop.add(chkAutoExpand, "cell 1 0,alignx left");
 
 		JScrollPane scrollPane = new JScrollPane();
 		getContentPane().add(scrollPane, "cell 0 1,grow");
+		
+		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
+			public boolean dispatchKeyEvent(KeyEvent e) {
+				if ((e.getID() == KeyEvent.KEY_PRESSED) && (e.getKeyCode() == KeyEvent.VK_V) && ((e.getModifiers() & KeyEvent.CTRL_MASK) != 0)) {
+					String pasted = null;
+					Clipboard c = Toolkit.getDefaultToolkit().getSystemClipboard();
+					try {
+						pasted = c.getData(DataFlavor.stringFlavor).toString();
+					} catch (UnsupportedFlavorException e1) {
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+					
+					System.out.println("pasted");
+					
+					if (pasted != null) {
+						refresh0(scrollPane, "", pasted);
+					}
+				}
+				return false;
+			}
+		});
 
 		new FileDrop(scrollPane, /* dragBorder, */ new FileDrop.Listener() {
 			public void filesDropped(java.io.File[] files) {
@@ -211,12 +249,12 @@ public class JSONViewer extends JFrame {
 		}
 		tree.expandPath(parent);
 	}
-
-	void refresh(JScrollPane scrPane, String filePath) {
-		String json = loadStringFromFile(filePath);
+	
+	void refresh0(JScrollPane scrPane, String title, String json) {
+		System.out.println("refresh0");
 		Object jsonObj = null;
 		if ((jsonObj = isValidJson(json)) == null) {
-			JOptionPane.showMessageDialog(this, "ÆÄ½Ì¿¡ ½ÇÆÐÇÏ¿´½À´Ï´Ù. JSON ÆÄÀÏÀ» È®ÀÎÇØÁÖ¼¼¿ä.", "¾Ö·¯", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, "Invalid JSON", "ALART", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 
@@ -243,10 +281,18 @@ public class JSONViewer extends JFrame {
 		}
 
 		addBranches(jsonObj);
-		this.setTitle("JSON Viewer v0.1 - " + filePath);
+		this.setTitle("JSON Viewer v0.1 - " + title);
 		btnExpandAll.setEnabled(true);
+		if (chkAutoExpand.isSelected()) {
+			TreeNode root = (TreeNode) tree.getModel().getRoot();
+			expandAll(tree, new TreePath(root));
+		}
 
 		return;
+	}
+
+	void refresh(JScrollPane scrPane, String filePath) {
+		refresh0(scrPane, filePath, loadStringFromFile(filePath));
 	}
 
 	Object isValidJson(String json) {
@@ -258,7 +304,7 @@ public class JSONViewer extends JFrame {
 		try {
 			obj = jsonParser.parse(json);
 		} catch (ParseException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 			return null;
 		}
 
