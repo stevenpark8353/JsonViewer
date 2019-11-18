@@ -4,3 +4,7 @@
 
 # HowToLaunch
 Main Location: Launcher.java
+
+# HowToUse
+1. Drag Json File into the viewer.
+2. Copy any json text and paste(Ctrl+v) into the viewer.
