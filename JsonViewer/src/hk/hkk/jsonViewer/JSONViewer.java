@@ -162,8 +162,6 @@ public class JSONViewer extends JFrame {
 						e1.printStackTrace();
 					}
 					
-					System.out.println("pasted");
-					
 					if (pasted != null) {
 						refresh0(scrollPane, "", pasted);
 					}
@@ -251,7 +249,6 @@ public class JSONViewer extends JFrame {
 	}
 	
 	void refresh0(JScrollPane scrPane, String title, String json) {
-		System.out.println("refresh0");
 		Object jsonObj = null;
 		if ((jsonObj = isValidJson(json)) == null) {
 			JOptionPane.showMessageDialog(this, "Invalid JSON", "ALART", JOptionPane.ERROR_MESSAGE);
